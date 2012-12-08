@@ -1,63 +1,6 @@
-require 'openssl'
-require 'openssl'
+require 'TestModule'
 
-# Adapted from http://www.brentsowers.com/2007/12/aes-encryption-and-decryption-in-ruby.html
-module AES
-  def AES.encrypt(data, key, iv)
-    aes = OpenSSL::Cipher::Cipher.new("AES-128-CBC")
-    aes.encrypt
-    aes.key = key
-    aes.iv = iv if iv != nil
-    return aes.update(data) + aes.final
-  end
-
-  def AES.decrypt(encrypted_data, key, iv)
-    aes = OpenSSL::Cipher::Cipher.new("AES-128-CBC")
-    aes.decrypt
-    aes.key = key
-    aes.iv = iv if iv != nil
-    return aes.update(encrypted_data) + aes.final
-  end
-end
-
-class TestModule
-  def get_block_size()
-    return 128 / 8
-  end
-
-  def get_iv
-    return @iv
-  end
-
-  def initialize(data, key = nil, iv = nil, encrypted_data = nil)
-    @key = key.nil? ? (1..16).map{rand(255).chr}.join : key
-    @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
-    @encrypted = encrypted_data.nil? ? AES.encrypt(data, @key, @iv) : encrypted_data
-
-    puts()
-    puts("-" * 80)
-    puts("Generated test data:")
-    puts("key: #{@key.unpack("H*")}")
-    puts("iv:  #{@iv.unpack("H*")}")
-    puts("enc: #{@encrypted.unpack("H*")}")
-    puts("-" * 80)
-  end
-
-  def get_encrypted_string()
-    return @encrypted
-  end
-
-  def attempt_decrypt(iv, block)
-      begin
-        decrypted = AES.decrypt(block, @key, iv)
-        return true
-      rescue # TODO: Be more specific
-        return false
-      end
-  end
-end
-
-class PaddingOracle
+class Pooracle
   def initialize(mod)
     @module = mod
   end
@@ -106,11 +49,11 @@ class PaddingOracle
   end
 
   def decrypt
-    encrypted  = @module.get_iv() + @module.get_encrypted_string()
-    blocksize  = @module.get_block_size()
+    encrypted  = @module.iv + @module.get_encrypted_string()
+    blocksize  = @module.blocksize
     blockcount = encrypted.length / blocksize
 
-    if(encrypted.length % @module.get_block_size() != 0)
+    if(encrypted.length % @module.blocksize != 0)
       puts("Encrypted data isn't a multiple of the blocksize! Is this a block cipher?")
     end
 
@@ -139,17 +82,3 @@ class PaddingOracle
     return result
   end
 end
-
-0.upto(64) do
-  testdata = (0..rand(64)).map{rand(255).chr}.join
-  mod = TestModule.new(testdata)
-  result = PaddingOracle.new(mod).decrypt
-  if(result != testdata)
-    puts("ERROR: Data did not decrypt properly!")
-    exit
-  end
-  puts(result.unpack("H*"))
-end
-
-puts(PaddingOracle.new(TestModule.new("ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt)
-
