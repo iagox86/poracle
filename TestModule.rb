@@ -23,7 +23,7 @@ class TestModule
 
   def attempt_decrypt(iv, block)
       begin
-        #sleep(0.001)
+        sleep(0.0005)
         decrypted = AES.decrypt(block, @key, iv)
         return true
       rescue # TODO: Be more specific

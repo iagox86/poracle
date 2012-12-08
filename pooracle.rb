@@ -5,7 +5,8 @@ class Pooracle
     @module = mod
   end
 
-  def do_block(block, previous, character = nil, blockprime = nil)
+  def do_block(num, block, previous, character = nil, blockprime = nil)
+
     # Initialized the blockprime variable to all zeroes if it's not set.
     # Interestingly, it doesn't actually matter how it's initialized, all
     # that matters is the length
@@ -44,6 +45,10 @@ class Pooracle
         #    screwed this one up!)
         plaintext_char = blockprime[character].ord ^ expected_padding ^ previous[character].ord
 
+        # Update @output_state and print it (purely for output)
+        @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
+        puts(">> \"#{@output_state}\"")
+
         # Create the blockprime that's going to be used for the next level.
         # Basically, take the last 'n' characters of blockprime and set their
         # padding to the next padding value. I'd like to find a better way to
@@ -58,7 +63,7 @@ class Pooracle
         # last character just happened to decrypt to \x02, meaning that setting
         # the last character to \x02 will be valid padding even when we expect
         # \x01
-        chr = do_block(block, previous, character - 1, new_blockprime)
+        chr = do_block(num, block, previous, character - 1, new_blockprime)
         if(!chr.nil?)
           return plaintext_char.chr + chr
         end
@@ -75,6 +80,9 @@ class Pooracle
     if(iv.nil?)
       iv = "\x00" * @module.blocksize
     end
+
+    # Create the @output_state variable, which will be purely for output
+    @output_state = '?' * @module.data.length
 
     # Add the IV to the start of the encrypted string (for simplicity)
     data  = iv + @module.data
@@ -101,7 +109,7 @@ class Pooracle
     # Decrypt all the blocks - from the last to the first (after the IV)
     result = ''
     (blocks.size - 1).step(1, -1) do |i|
-      new_result = do_block(blocks[i], blocks[i - 1])
+      new_result = do_block(i, blocks[i], blocks[i - 1])
       if(new_result.nil?)
         return nil
       end

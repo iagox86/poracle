@@ -17,7 +17,7 @@ end
 
 # Test a bunch of random strings
 0.upto(4) do
-  testdata = (0..rand(64)).map{rand(255).chr}.join
+  testdata = (0..rand(64)).map{(rand(0x80 - 0x20) + 0x20).chr}.join
   mod = TestModule.new(testdata)
   result = Pooracle.new(mod).decrypt
   if(result != testdata)
