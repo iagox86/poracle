@@ -32,7 +32,7 @@ end
 
 # Test a string that won't decrypt properly
 mod = TestModule.new()
-mod.gen_aes_128(nil, 'A' * 16, 'A' * 16, 'A' * 20)
+mod.aes_128_from_enc('A' * 32, 'A' * 16, 'A' * 16)
 result = Pooracle.new(mod).decrypt
 if(!result.nil?)
   puts("Invalid encrypted string test failed!")
