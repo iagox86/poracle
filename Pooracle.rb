@@ -47,7 +47,7 @@ class Pooracle
         # 3. The value of this character in the previous block, since that's
         #    what it had been XORed with in the original encryption (I originally
         #    screwed this one up!)
-        plaintext_char = blockprime[character].ord ^ expected_padding ^ previous[character].ord
+        plaintext_char = Util.ord(blockprime[character]) ^ expected_padding ^ Util.ord(previous[character])
 
         # Update @output_state and print it (purely for output)
         @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
@@ -61,7 +61,7 @@ class Pooracle
         # do this...
         new_blockprime = blockprime.clone
         15.step(character, -1) do |j|
-          new_blockprime[j] = (new_blockprime[j].ord ^ expected_padding ^ (expected_padding + 1)).chr
+          new_blockprime[j] = (Util.ord(new_blockprime[j]) ^ expected_padding ^ (expected_padding + 1)).chr
         end
 
         # Recursively do the next block. The reason for recursion is that it
@@ -128,10 +128,10 @@ class Pooracle
 
     # Validate and remove the padding
     pad_bytes = result[result.length - 1]
-    if(result[result.length - pad_bytes.ord, result.length - 1] != pad_bytes * pad_bytes.ord)
+    if(result[result.length - Util.ord(pad_bytes), result.length - 1] != pad_bytes * Util.ord(pad_bytes))
       return nil
     end
-    result = result[0, result.length - pad_bytes.ord]
+    result = result[0, result.length - Util.ord(pad_bytes)]
 
     return result
   end
