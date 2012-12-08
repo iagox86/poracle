@@ -3,7 +3,7 @@ class Util
     newstr = ''
 
     str.each_char do |c|
-      if(c.ord < 0x20 || c.ord > 0x7F)
+      if(c.ord < 0x20 || c.ord > 0x7E)
         newstr += "."
       else
         newstr += c
