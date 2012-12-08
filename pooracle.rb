@@ -1,12 +1,6 @@
 require 'openssl'
 require 'openssl'
 
-module Util
-  def Util.tohex(str)
-    return str.unpack("H*")
-  end
-end
-
 # Adapted from http://www.brentsowers.com/2007/12/aes-encryption-and-decryption-in-ruby.html
 module AES
   def AES.encrypt(data, key, iv)
@@ -53,10 +47,6 @@ class TestModule
         return false
       end
   end
-
-  def display
-    puts(Util.tohex(@encrypted))
-  end
 end
 
 class PaddingOracle
@@ -65,13 +55,9 @@ class PaddingOracle
   end
 
   def do_block(block, lastblock, character = nil, fakeblock = nil)
-    #puts("Processing block with #{block.length} bytes...")
-    #puts("Block: #{Util.tohex(block)}")
-
     if(fakeblock.nil?)
       fakeblock = "\0" * block.length
     end
-
 
     # Default to the last character if none was passed
     if(character.nil?)
@@ -142,8 +128,8 @@ class PaddingOracle
   end
 end
 
-0.upto(16) do
-  testdata = (1..rand(40) + 9).map{rand(255).chr}.join
+0.upto(64) do
+  testdata = (0..rand(64)).map{rand(255).chr}.join
   mod = TestModule.new(testdata)
   result = PaddingOracle.new(mod).go
   if(result != testdata)
