@@ -36,8 +36,8 @@ class TestModule
   end
 
   def initialize(test_string)
-    @key = "D" * 16 #(1..16).map{rand(255).chr}.join
-    @iv  = "1234567890123456" #(1..16).map{rand(255).chr}.join
+    @key = (1..16).map{rand(255).chr}.join
+    @iv  = (1..16).map{rand(255).chr}.join
     @encrypted = AES.encrypt(test_string, @key, @iv)
   end
 
