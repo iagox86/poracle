@@ -2,8 +2,11 @@ require 'TestModule'
 require 'Util'
 
 class Pooracle
+  attr_accessor :verbose
+
   def initialize(mod)
     @module = mod
+    @verbose = true
   end
 
   def do_block(num, block, previous, character = nil, blockprime = nil)
@@ -48,7 +51,9 @@ class Pooracle
 
         # Update @output_state and print it (purely for output)
         @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
-        puts(">> \"#{Util.strclean(@output_state)}\"")
+        if(@verbose)
+          puts(">> \"#{Util.strclean(@output_state)}\"")
+        end
 
         # Create the blockprime that's going to be used for the next level.
         # Basically, take the last 'n' characters of blockprime and set their
@@ -95,16 +100,20 @@ class Pooracle
     end
 
     # Tell the user what's going on
-    puts("> Starting Pooracle decrypter with module #{@module.class::NAME}")
-    puts(">> Encrypted length: %d" % data.length)
-    puts(">> Blocksize: %d" % @module.blocksize)
-    puts(">> %d blocks:" % blockcount)
+    if(@verbose)
+      puts("> Starting Pooracle decrypter with module #{@module.class::NAME}")
+      puts(">> Encrypted length: %d" % data.length)
+      puts(">> Blocksize: %d" % @module.blocksize)
+      puts(">> %d blocks:" % blockcount)
+    end
 
     blocks = data.unpack("a#{@module.blocksize}" * blockcount)
     i = 0
     blocks.each do |b|
       i = i + 1
-      puts(">>> Block #{i}: #{b.unpack("H*")}")
+      if(@verbose)
+        puts(">>> Block #{i}: #{b.unpack("H*")}")
+      end
     end
 
     # Decrypt all the blocks - from the last to the first (after the IV)

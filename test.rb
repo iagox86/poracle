@@ -7,7 +7,7 @@ puts("Decrypting 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'):")
 puts(Pooracle.new(TestModule.new("ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt)
 
 # Test a string that won't decrypt properly
-result = Pooracle.new(TestModule.new(nil, 'A' * 16, 'A' * 16, 'A' * 64)).decrypt
+result = Pooracle.new(TestModule.new(nil, 'A' * 16, 'A' * 16, 'A' * 20)).decrypt
 if(!result.nil?)
   puts("Invalid encrypted string test failed!")
   exit
@@ -24,7 +24,7 @@ end
     puts("ERROR: Data did not decrypt properly!")
     exit
   end
-  puts(result.unpack("H*"))
+  puts(Util.strclean(result))
   puts()
   puts()
 end

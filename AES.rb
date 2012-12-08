@@ -4,16 +4,16 @@ require 'openssl'
 module AES
   BLOCKSIZE = 128 / 8
 
-  def AES.encrypt(data, key, iv)
-    aes = OpenSSL::Cipher::Cipher.new("AES-128-CBC")
+  def AES.encrypt(data, key, iv, mode)
+    aes = OpenSSL::Cipher::Cipher.new(mode)
     aes.encrypt
     aes.key = key
     aes.iv = iv if iv != nil
     return aes.update(data) + aes.final
   end
 
-  def AES.decrypt(encrypted_data, key, iv)
-    aes = OpenSSL::Cipher::Cipher.new("AES-128-CBC")
+  def AES.decrypt(encrypted_data, key, iv, mode)
+    aes = OpenSSL::Cipher::Cipher.new(mode)
     aes.decrypt
     aes.key = key
     aes.iv = iv if iv != nil
