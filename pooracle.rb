@@ -49,25 +49,28 @@ class Pooracle
   end
 
   def decrypt
+    # Get the IV, defaulting to a NULL IV if we don't have one
     iv = @module.iv
     if(iv.nil?)
       iv = "\x00" * @module.blocksize
     end
 
-    encrypted  = iv + @module.get_encrypted_string()
-    blocksize  = @module.blocksize
-    blockcount = encrypted.length / blocksize
+    # Add the IV to the start of the encrypted string (for simplicity)
+    data  = iv + @module.data
+    blockcount = data.length / @module.blocksize
 
-    if(encrypted.length % @module.blocksize != 0)
+    # Validate the blocksize
+    if(data.length % @module.blocksize != 0)
       puts("Encrypted data isn't a multiple of the blocksize! Is this a block cipher?")
     end
 
+    # Tell the user what's going on
     puts("> Starting Pooracle decrypter with module #{@module.class::NAME}")
-    puts(">> Encrypted length: %d" % encrypted.length)
-    puts(">> Blocksize: %d" % blocksize)
+    puts(">> Encrypted length: %d" % data.length)
+    puts(">> Blocksize: %d" % @module.blocksize)
     puts(">> %d blocks:" % blockcount)
 
-    blocks = encrypted.unpack("a#{blocksize}" * blockcount)
+    blocks = data.unpack("a#{@module.blocksize}" * blockcount)
     i = 0
     blocks.each do |b|
       i = i + 1
