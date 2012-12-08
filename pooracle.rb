@@ -1,4 +1,5 @@
 require 'TestModule'
+require 'Util'
 
 class Pooracle
   def initialize(mod)
@@ -47,7 +48,7 @@ class Pooracle
 
         # Update @output_state and print it (purely for output)
         @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
-        puts(">> \"#{@output_state}\"")
+        puts(">> \"#{Util.strclean(@output_state)}\"")
 
         # Create the blockprime that's going to be used for the next level.
         # Basically, take the last 'n' characters of blockprime and set their
