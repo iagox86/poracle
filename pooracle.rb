@@ -142,12 +142,14 @@ class PaddingOracle
   end
 end
 
-str = ''
-0.upto(250) do |i|
-  str = str + i.chr
+0.upto(16) do
+  testdata = (1..rand(40) + 9).map{rand(255).chr}.join
+  mod = TestModule.new(testdata)
+  result = PaddingOracle.new(mod).go
+  if(result != testdata)
+    puts("ERROR: Data did not decrypt properly!")
+    exit
+  end
+  puts(result.unpack("H*"))
 end
-
-mod = TestModule.new(str)
-result = PaddingOracle.new(mod).go
-puts(Util.tohex(result))
 
