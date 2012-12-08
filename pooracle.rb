@@ -5,41 +5,62 @@ class Pooracle
     @module = mod
   end
 
-  def do_block(block, lastblock, character = nil, fakeblock = nil)
-    if(fakeblock.nil?)
-      fakeblock = "\0" * block.length
+  def do_block(block, previous, character = nil, blockprime = nil)
+    # Initialized the blockprime variable to all zeroes if it's not set.
+    # Interestingly, it doesn't actually matter how it's initialized, all
+    # that matters is the length
+    if(blockprime.nil?)
+      blockprime = "\0" * @module.blocksize
     end
 
     # Default to the last character if none was passed
     if(character.nil?)
-      character = block.length - 1
+      character = @module.blocksize - 1
     end
 
+    # When character is below 0, we've arrived at the beginning of the string
     if(character < 0)
       return ''
     end
 
     # Try every value for the current character
     0.upto(255) do |i|
-      # Set the current character to the new value
-      fakeblock[character] = i.chr
+      # Update the current character of blockprime
+      blockprime[character] = i.chr
 
-      # Attempt to decrypt our fake block and the real block
-      result = @module.attempt_decrypt(fakeblock, block)
+      # This line is the magic secret sauce. It attempts to decrypt the current
+      # block using blockprime as the IV. If this is successful, then it means
+      # that the padding is correct in the decrypted version
+      result = @module.attempt_decrypt(blockprime, block)
       if(result)
-#        puts("Character: #{character}")
-#        puts("Fakeblock: #{fakeblock.unpack("H*")} (#{fakeblock.length} bytes)")
-#        puts("Lastblock: #{lastblock.unpack("H*")} (#{lastblock.length} bytes)")
-        result = fakeblock[character].ord ^ (block.length - character) ^ lastblock[character].ord
-        #puts("Character %d might be %02x (%c)!" % [character, result, result])
+        # Save calculating this multiple times
+        expected_padding = @module.blocksize - character
 
-        new_fakeblock = fakeblock
+        # The current plaintext character is the xor of:
+        # 1. Our fake block's character (since it's XORed by that value in CBC)
+        # 2. The expected padding value, because that's what the oracle thought it was
+        # 3. The value of this character in the previous block, since that's
+        #    what it had been XORed with in the original encryption (I originally
+        #    screwed this one up!)
+        plaintext_char = blockprime[character].ord ^ expected_padding ^ previous[character].ord
+
+        # Create the blockprime that's going to be used for the next level.
+        # Basically, take the last 'n' characters of blockprime and set their
+        # padding to the next padding value. I'd like to find a better way to
+        # do this...
+        new_blockprime = blockprime.clone
         15.step(character, -1) do |j|
-          new_fakeblock[j] = (new_fakeblock[j].ord ^ (block.length - character) ^ (block.length - character + 1)).chr
+          new_blockprime[j] = (new_blockprime[j].ord ^ expected_padding ^ (expected_padding + 1)).chr
         end
-        chr = do_block(block, lastblock, character - 1, new_fakeblock)
+
+        # Recursively do the next block. The reason for recursion is that it
+        # makes it easy to resume if it turns out we got unlucky and the second
+        # last character just happened to decrypt to \x02, meaning that setting
+        # the last character to \x02 will be valid padding even when we expect
+        # \x01
+        chr = do_block(block, previous, character - 1, new_blockprime)
         if(!chr.nil?)
-          return result.chr + chr
+          return plaintext_char.chr + chr
         end
       end
     end
@@ -80,7 +101,11 @@ class Pooracle
     # Decrypt all the blocks - from the last to the first (after the IV)
     result = ''
     (blocks.size - 1).step(1, -1) do |i|
-      result = do_block(blocks[i], blocks[i - 1]).reverse + result
+      new_result = do_block(blocks[i], blocks[i - 1])
+      if(new_result.nil?)
+        return nil
+      end
+      result = new_result.reverse + result
     end
 
     # Validate and remove the padding
