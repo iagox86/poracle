@@ -3,6 +3,8 @@ require 'AES'
 class TestModule
   attr_reader :iv, :blocksize
 
+  NAME = "TestModule(tm)"
+
   def initialize(data, key = nil, iv = nil, encrypted_data = nil)
     @blocksize = AES::BLOCKSIZE
     @key = key.nil? ? (1..16).map{rand(255).chr}.join : key
@@ -12,6 +14,7 @@ class TestModule
     puts()
     puts("-" * 80)
     puts("Generated test data:")
+    puts("-" * 80)
     puts("key: #{@key.unpack("H*")}")
     puts("iv:  #{@iv.unpack("H*")}")
     puts("enc: #{@encrypted.unpack("H*")}")

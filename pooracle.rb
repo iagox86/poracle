@@ -27,9 +27,9 @@ class Pooracle
       # Attempt to decrypt our fake block and the real block
       result = @module.attempt_decrypt(fakeblock, block)
       if(result)
-        puts("Character: #{character}")
-        puts("Fakeblock: #{fakeblock.unpack("H*")} (#{fakeblock.length} bytes)")
-        puts("Lastblock: #{lastblock.unpack("H*")} (#{lastblock.length} bytes)")
+#        puts("Character: #{character}")
+#        puts("Fakeblock: #{fakeblock.unpack("H*")} (#{fakeblock.length} bytes)")
+#        puts("Lastblock: #{lastblock.unpack("H*")} (#{lastblock.length} bytes)")
         result = fakeblock[character].ord ^ (block.length - character) ^ lastblock[character].ord
         #puts("Character %d might be %02x (%c)!" % [character, result, result])
 
@@ -49,7 +49,12 @@ class Pooracle
   end
 
   def decrypt
-    encrypted  = @module.iv + @module.get_encrypted_string()
+    iv = @module.iv
+    if(iv.nil?)
+      iv = "\x00" * @module.blocksize
+    end
+
+    encrypted  = iv + @module.get_encrypted_string()
     blocksize  = @module.blocksize
     blockcount = encrypted.length / blocksize
 
@@ -57,13 +62,16 @@ class Pooracle
       puts("Encrypted data isn't a multiple of the blocksize! Is this a block cipher?")
     end
 
-    puts("Encrypted length: %d" % encrypted.length)
-    puts("Blocksize: %d" % blocksize)
-    puts("Expected: %d blocks..." % blockcount)
+    puts("> Starting Pooracle decrypter with module #{@module.class::NAME}")
+    puts(">> Encrypted length: %d" % encrypted.length)
+    puts(">> Blocksize: %d" % blocksize)
+    puts(">> %d blocks:" % blockcount)
 
     blocks = encrypted.unpack("a#{blocksize}" * blockcount)
+    i = 0
     blocks.each do |b|
-      puts(b.unpack("H*"))
+      i = i + 1
+      puts(">>> Block #{i}: #{b.unpack("H*")}")
     end
 
     # Decrypt all the blocks - from the last to the first (after the IV)
@@ -75,7 +83,7 @@ class Pooracle
     # Validate and remove the padding
     pad_bytes = result[result.length - 1]
     if(result[result.length - pad_bytes.ord, result.length - 1] != pad_bytes * pad_bytes.ord)
-      throw :BadPaddingError
+      return nil
     end
     result = result[0, result.length - pad_bytes.ord]
 
