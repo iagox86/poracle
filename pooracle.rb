@@ -125,17 +125,25 @@ class PaddingOracle
 
     blocks = encrypted.unpack("A#{blocksize}" * blockcount)
 
+    # Decrypt all the blocks - from the last to the first (after the IV)
     result = ''
     (blocks.size - 1).step(1, -1) do |i|
       result = do_block(blocks[i], blocks[i - 1]).reverse + result
     end
+
+    # Validate and remove the padding
+    pad_bytes = result[result.length - 1]
+    if(result[result.length - pad_bytes.ord, result.length - 1] != pad_bytes * pad_bytes.ord)
+      throw :BadPaddingError
+    end
+    result = result[0, result.length - pad_bytes.ord]
 
     return result
   end
 end
 
 str = ''
-0.upto(255) do |i|
+0.upto(250) do |i|
   str = str + i.chr
 end
 
