@@ -10,7 +10,6 @@ class Pooracle
   end
 
   def do_block(num, block, previous, character = nil, blockprime = nil)
-
     # Initialized the blockprime variable to all zeroes if it's not set.
     # Interestingly, it doesn't actually matter how it's initialized, all
     # that matters is the length
