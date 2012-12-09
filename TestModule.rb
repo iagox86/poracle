@@ -2,12 +2,13 @@ require 'AES'
 
 class TestModule
   attr_reader :iv, :blocksize, :data
-  attr_accessor :verbose
+  attr_accessor :verbose, :delay
 
   NAME = "TestModule(tm)"
 
-  def initialize(verbose = false)
-    @verbose = verbose
+  def initialize()
+    @verbose = false
+    @delay   = 0
   end
 
   def aes_128_from_data(data, key = nil, iv = nil)
@@ -48,7 +49,9 @@ class TestModule
 
   def attempt_decrypt(iv, block)
       begin
-        #sleep(0.0005)
+        if(@delay > 0)
+          sleep(@delay)
+        end
         decrypted = AES.decrypt(block, @key, iv, "AES-128-CBC")
         return true
       rescue # TODO: Be more specific
