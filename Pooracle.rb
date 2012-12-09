@@ -59,7 +59,7 @@ class Pooracle
         # padding to the next padding value. I'd like to find a better way to
         # do this...
         new_blockprime = blockprime.clone
-        15.step(character, -1) do |j|
+        (@module.blocksize - 1).step(character, -1) do |j|
           new_blockprime[j] = (Util.ord(new_blockprime[j]) ^ expected_padding ^ (expected_padding + 1)).chr
         end
 

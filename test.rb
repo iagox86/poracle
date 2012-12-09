@@ -2,6 +2,22 @@ $LOAD_PATH << File.dirname(__FILE__) # A hack to make this work on 1.8/1.9
 
 require 'Pooracle'
 
+# Do a visible test for AES-256
+print("Testing AES-256 visibly...")
+mod = TestModule.new()
+mod.verbose = true
+mod.delay = 0.0001
+mod.aes_256_from_data("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+p = Pooracle.new(mod)
+p.verbose = true
+result = p.decrypt
+if(result == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  puts("Passed!")
+else
+  puts("Failed!")
+  exit
+end
+
 # Do a visible test
 print("Testing AES-128 visibly...")
 mod = TestModule.new()
