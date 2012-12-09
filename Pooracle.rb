@@ -6,7 +6,7 @@ class Pooracle
 
   def initialize(mod)
     @module = mod
-    @verbose = true
+    @verbose = false
   end
 
   def do_block(num, block, previous, character = nil, blockprime = nil)
