@@ -1,7 +1,26 @@
-require 'Util'
-
 class Pooracle
   attr_accessor :verbose
+
+  def strclean(str)
+    newstr = ''
+
+    str.each_char do |c|
+      if(ord(c) < 0x20 || ord(c) > 0x7E)
+        newstr += "."
+      else
+        newstr += c
+      end
+    end
+
+    return newstr
+  end
+
+  def ord(c)
+    if(c.is_a?(Fixnum))
+      return c
+    end
+    return c.unpack('C')[0]
+  end
 
   def initialize(mod)
     @module = mod
@@ -45,12 +64,12 @@ class Pooracle
         # 3. The value of this character in the previous block, since that's
         #    what it had been XORed with in the original encryption (I originally
         #    screwed this one up!)
-        plaintext_char = Util.ord(blockprime[character]) ^ expected_padding ^ Util.ord(previous[character])
+        plaintext_char = ord(blockprime[character]) ^ expected_padding ^ ord(previous[character])
 
         # Update @output_state and print it (purely for output)
         @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
         if(@verbose)
-          puts(">> \"#{Util.strclean(@output_state)}\"")
+          puts(">> \"#{strclean(@output_state)}\"")
         end
 
         # Create the blockprime that's going to be used for the next level.
@@ -59,7 +78,7 @@ class Pooracle
         # do this...
         new_blockprime = blockprime.clone
         (@module.blocksize - 1).step(character, -1) do |j|
-          new_blockprime[j] = (Util.ord(new_blockprime[j]) ^ expected_padding ^ (expected_padding + 1)).chr
+          new_blockprime[j] = (ord(new_blockprime[j]) ^ expected_padding ^ (expected_padding + 1)).chr
         end
 
         # Recursively do the next block. The reason for recursion is that it
@@ -125,10 +144,10 @@ class Pooracle
 
     # Validate and remove the padding
     pad_bytes = result[result.length - 1]
-    if(result[result.length - Util.ord(pad_bytes), result.length - 1] != pad_bytes * Util.ord(pad_bytes))
+    if(result[result.length - ord(pad_bytes), result.length - 1] != pad_bytes * ord(pad_bytes))
       return nil
     end
-    result = result[0, result.length - Util.ord(pad_bytes)]
+    result = result[0, result.length - ord(pad_bytes)]
 
     return result
   end
