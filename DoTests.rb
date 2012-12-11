@@ -21,7 +21,7 @@ ciphers.each do |cipher|
     puts "Failed!"
   end
 
-  (0..64).to_a.sample(16).each do |i|
+  (0..64).to_a.shuffle[0, 16].each do |i|
     print("> #{cipher} with random data (#{i} bytes)... ")
 
     data = (0..i).map{(rand(0x7E - 0x20) + 0x20).chr}.join
