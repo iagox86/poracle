@@ -52,7 +52,7 @@ class TestModule
   def aes_256_from_data(data, key = nil, iv = nil)
     @blocksize = AES::BLOCKSIZE
     @key = key.nil? ? (1..32).map{rand(255).chr}.join : key
-    @iv  = iv.nil?  ? (1..32).map{rand(255).chr}.join : iv
+    @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
     @mode = "AES-256-CBC"
     @data = AES.encrypt(data, @key, @iv, @mode)
 

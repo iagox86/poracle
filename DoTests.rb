@@ -74,6 +74,23 @@ end
   end
 end
 
+# Test a bunch of random strings with aes-256
+0.upto(8) do
+  print("Testing AES-256 with a random string...")
+  testdata = (0..rand(64)).map{(rand(0x7E - 0x20) + 0x20).chr}.join
+
+  mod = TestModule.new()
+  mod.aes_256_from_data(testdata)
+
+  p = Pooracle.new(mod)
+  result = p.decrypt()
+  if(result == testdata)
+    puts("Passed!")
+  else
+    puts("Failed!")
+  end
+end
+
 # Test a string that won't decrypt properly
 print("Testing an invalid ciphertext string...")
 mod = TestModule.new()
