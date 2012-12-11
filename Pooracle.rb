@@ -17,12 +17,12 @@
 #  The initialization vector used for the encryption. If this isn't given, the
 #  first block can't be decrypted
 #
-# attempt_decrypt(iv, block)
-#  Attempt to decrypt the given data with the given IV and return whether or
-#  not there was a padding error. The IV doesn't have to be an actual IV, it
-#  just needs to be the last two blocks.
+# attempt_decrypt(data)
+#  Attempt to decrypt the given data, and return true if there was no
+#  padding error and false if a padding error occured.
 #
-# See LocalTestModule.rb for an example of how this can be made.
+# See LocalTestModule.rb and RemoteTestModule.rb for examples of how this can
+# be made.
 ##
 class Pooracle
   attr_accessor :verbose
@@ -79,7 +79,7 @@ class Pooracle
       # This line is the magic secret sauce. It attempts to decrypt the current
       # block using blockprime as the IV. If this is successful, then it means
       # that the padding is correct in the decrypted version
-      result = @module.attempt_decrypt(blockprime, block)
+      result = @module.attempt_decrypt(blockprime + block)
       if(result)
         # Save calculating this multiple times
         expected_padding = @module.blocksize - character

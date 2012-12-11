@@ -50,7 +50,7 @@ class LocalTestModule
   end
 
   # TODO: Make this a single argument
-  def attempt_decrypt(iv, block)
+  def attempt_decrypt(data)
     begin
       if(@delay > 0)
         sleep(@delay)
@@ -59,8 +59,7 @@ class LocalTestModule
       c = OpenSSL::Cipher::Cipher.new(@mode)
       c.decrypt
       c.key = @key
-      c.iv = iv
-      c.update(block) + c.final
+      c.update(data) + c.final
 
       return true
     rescue # TODO: Be more specific

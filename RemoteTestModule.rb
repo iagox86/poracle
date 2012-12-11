@@ -22,8 +22,8 @@ class RemoteTestModule
     @blocksize = 16
   end
 
-  def attempt_decrypt(iv, block)
-    result = HTTParty.get("http://localhost:20222/decrypt/#{iv.unpack("H*").pop}#{block.unpack("H*").pop}")
+  def attempt_decrypt(data)
+    result = HTTParty.get("http://localhost:20222/decrypt/#{data.unpack("H*").pop}")
 
     return result.parsed_response !~ /Fail/
   end
