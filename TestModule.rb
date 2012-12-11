@@ -1,4 +1,4 @@
-require 'AES'
+require 'Crypto'
 
 class TestModule
   attr_reader :iv, :blocksize, :data
@@ -12,11 +12,11 @@ class TestModule
   end
 
   def aes_128_from_data(data, key = nil, iv = nil)
-    @blocksize = AES::BLOCKSIZE
+    @blocksize = 128 / 8
     @key = key.nil? ? (1..16).map{rand(255).chr}.join : key
     @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
     @mode = "AES-128-CBC"
-    @data = AES.encrypt(data, @key, @iv, @mode)
+    @data = Crypto.encrypt(data, @key, @iv, @mode)
 
     if(verbose)
       puts()
@@ -31,7 +31,7 @@ class TestModule
   end
 
   def aes_128_from_enc(encrypted_data, key = nil, iv = nil)
-    @blocksize = AES::BLOCKSIZE
+    @blocksize = 128 / 8
     @key = key.nil? ? (1..16).map{rand(255).chr}.join : key
     @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
     @mode = "AES-128-CBC"
@@ -50,11 +50,11 @@ class TestModule
   end
 
   def aes_192_from_data(data, key = nil, iv = nil)
-    @blocksize = AES::BLOCKSIZE
+    @blocksize = 128 / 8
     @key = key.nil? ? (1..24).map{rand(255).chr}.join : key
     @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
     @mode = "AES-192-CBC"
-    @data = AES.encrypt(data, @key, @iv, @mode)
+    @data = Crypto.encrypt(data, @key, @iv, @mode)
 
     if(verbose)
       puts()
@@ -69,11 +69,11 @@ class TestModule
   end
 
   def aes_256_from_data(data, key = nil, iv = nil)
-    @blocksize = AES::BLOCKSIZE
+    @blocksize = 128 / 8
     @key = key.nil? ? (1..32).map{rand(255).chr}.join : key
     @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
     @mode = "AES-256-CBC"
-    @data = AES.encrypt(data, @key, @iv, @mode)
+    @data = Crypto.encrypt(data, @key, @iv, @mode)
 
     if(verbose)
       puts()
@@ -92,7 +92,7 @@ class TestModule
         if(@delay > 0)
           sleep(@delay)
         end
-        decrypted = AES.decrypt(block, @key, iv, @mode)
+        decrypted = Crypto.decrypt(block, @key, iv, @mode)
         return true
       rescue # TODO: Be more specific
         return false
