@@ -1,6 +1,7 @@
 ##
 # Pooracle.rb
 # Created: December 8, 2012
+# By: Ron Bowes
 #
 # This class implements a simple Padding Oracle attack. It requires a 'module',
 # which implements a couple simple methods:

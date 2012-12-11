@@ -1,3 +1,13 @@
+##
+# RemoteTestModule.rb
+# Created: December 10, 2012
+# By: Ron Bowes
+#
+# A very simple implementation of a Padding Oracle module. Basically, it
+# performs the attack against an instance of RemoteTestServer, which is an
+# ideal padding oracle target.
+##
+#
 require 'httparty'
 
 class RemoteTestModule

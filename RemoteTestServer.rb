@@ -1,3 +1,14 @@
+##
+# RemoteTestServer
+# Created: December 10, 2012
+# By: Ron Bowes
+#
+# A very simple application that is vulnerable to a padding oracle
+# attack. A Sinatra app with two paths - /encrypt and /decrypt. /encrypt
+# sends data encrypted with the current key, and /decrypt attempts to
+# decrypt it but only reveals whether or not it was successful.
+##
+
 require 'base64'
 require 'openssl'
 require 'sinatra'

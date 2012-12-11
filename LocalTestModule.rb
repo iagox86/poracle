@@ -1,3 +1,13 @@
+##
+# LocaltestModule.rb
+# Created: December 10, 2012
+# By: Ron Bowes
+#
+# A very simple application that's vulnerable to a padding oracle
+# attack. It's initialized with data and a mode, and the decrypt()
+# function will try to decrypt the given data with the given key.
+##
+
 require 'openssl'
 
 class LocalTestModule

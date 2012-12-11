@@ -6,12 +6,8 @@ require 'LocalTestModule'
 require 'RemoteTestModule'
 require 'Pooracle'
 
-#p = Pooracle.new(RemoteTestModule.new)
-#p.verbose = true
-#p.decrypt()
-
+# Perform local checks
 ciphers = OpenSSL::Cipher::ciphers.grep(/cbc/)
-
 passes = 0
 failures = 0
 ciphers.each do |cipher|
@@ -42,4 +38,10 @@ end
 puts("Ciphers tested: #{ciphers.join(", ")}")
 puts("Tests passed: #{passes}")
 puts("Tests failed: #{failures}")
+
+# Attempt a remote check
+puts("Starting remote test (this requires RemoteTestServer.rb to be running on localhost:20222)")
+p = Pooracle.new(RemoteTestModule.new)
+p.verbose = true
+p.decrypt()
 
