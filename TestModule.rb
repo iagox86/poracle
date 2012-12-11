@@ -49,6 +49,25 @@ class TestModule
     end
   end
 
+  def aes_192_from_data(data, key = nil, iv = nil)
+    @blocksize = AES::BLOCKSIZE
+    @key = key.nil? ? (1..24).map{rand(255).chr}.join : key
+    @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
+    @mode = "AES-192-CBC"
+    @data = AES.encrypt(data, @key, @iv, @mode)
+
+    if(verbose)
+      puts()
+      puts("-" * 80)
+      puts("Generated test data: #{data}")
+      puts("-" * 80)
+      puts("key: #{@key.unpack("H*")}")
+      puts("iv:  #{@iv.unpack("H*")}")
+      puts("enc: #{@data.unpack("H*")}")
+      puts("-" * 80)
+    end
+  end
+
   def aes_256_from_data(data, key = nil, iv = nil)
     @blocksize = AES::BLOCKSIZE
     @key = key.nil? ? (1..32).map{rand(255).chr}.join : key

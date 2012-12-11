@@ -6,7 +6,7 @@ require 'Pooracle'
 print("Testing AES-256 visibly...")
 mod = TestModule.new()
 mod.verbose = true
-mod.delay = 0.0001
+#mod.delay = 0.0001
 mod.aes_256_from_data("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 p = Pooracle.new(mod)
 p.verbose = true
@@ -22,7 +22,7 @@ end
 print("Testing AES-128 visibly...")
 mod = TestModule.new()
 mod.verbose = true
-mod.delay = 0.0001
+#mod.delay = 0.0001
 mod.aes_128_from_data("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 p = Pooracle.new(mod)
 p.verbose = true
@@ -64,6 +64,23 @@ end
 
   mod = TestModule.new()
   mod.aes_128_from_data(testdata)
+
+  p = Pooracle.new(mod)
+  result = p.decrypt()
+  if(result == testdata)
+    puts("Passed!")
+  else
+    puts("Failed!")
+  end
+end
+
+# Test a bunch of random strings with aes-192
+0.upto(8) do
+  print("Testing AES-192 with a random string...")
+  testdata = (0..rand(64)).map{(rand(0x7E - 0x20) + 0x20).chr}.join
+
+  mod = TestModule.new()
+  mod.aes_192_from_data(testdata)
 
   p = Pooracle.new(mod)
   result = p.decrypt()
