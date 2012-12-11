@@ -74,7 +74,6 @@ class Pooracle
       end
     end
 
-    puts("Couldn't find a proper padding! :(")
     return nil
   end
 

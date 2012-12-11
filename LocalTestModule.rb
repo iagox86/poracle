@@ -1,121 +1,60 @@
-require 'Crypto'
+require 'openssl'
 
 class LocalTestModule
-  attr_reader :iv, :blocksize, :data
-  attr_accessor :verbose, :delay
+  attr_reader :iv, :data, :blocksize
 
   NAME = "LocalTestModule(tm)"
 
-  def initialize()
-    @verbose = false
-    @delay   = 0
-  end
+  def initialize(mode, data, key = nil, iv = nil, verbose = false, delay = 0)
+    # Save these variables
+    @mode = mode
+    @verbose = verbose
+    @delay = delay
 
-  def des_from_data(data, key = nil, iv = nil)
-    @blocksize = 64 / 8
-    @key = key.nil? ? (1..8).map{rand(255).chr}.join : key
-    @iv  = iv.nil?  ? (1..8).map{rand(255).chr}.join : iv
-    @mode = "DES-CBC"
-    @data = Crypto.encrypt(data, @key, @iv, @mode)
+    # Create the cipher
+    c = OpenSSL::Cipher::Cipher.new(mode)
 
-    if(verbose)
-      puts()
-      puts("-" * 80)
-      puts("Generated test data: #{data}")
-      puts("-" * 80)
-      puts("key: #{@key.unpack("H*")}")
-      puts("iv:  #{@iv.unpack("H*")}")
-      puts("enc: #{@data.unpack("H*")}")
-      puts("-" * 80)
-    end
-  end
+    # Set up the required variables
+    @blocksize = c.block_size
+    @key = key.nil? ? (1..c.key_len).map{rand(255).chr}.join : key
+    @iv  = iv.nil?  ? (1..c.iv_len).map{rand(255).chr}.join  : iv
 
-  def aes_128_from_data(data, key = nil, iv = nil)
-    @blocksize = 128 / 8
-    @key = key.nil? ? (1..16).map{rand(255).chr}.join : key
-    @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
-    @mode = "AES-128-CBC"
-    @data = Crypto.encrypt(data, @key, @iv, @mode)
+    # Set up the cipher
+    c.encrypt
+    c.key = @key
+    c.iv  = @iv
+
+    @data = c.update(data) + c.final
 
     if(verbose)
       puts()
       puts("-" * 80)
       puts("Generated test data: #{data}")
       puts("-" * 80)
-      puts("key: #{@key.unpack("H*")}")
-      puts("iv:  #{@iv.unpack("H*")}")
-      puts("enc: #{@data.unpack("H*")}")
-      puts("-" * 80)
-    end
-  end
-
-  def aes_128_from_enc(encrypted_data, key = nil, iv = nil)
-    @blocksize = 128 / 8
-    @key = key.nil? ? (1..16).map{rand(255).chr}.join : key
-    @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
-    @mode = "AES-128-CBC"
-    @data = encrypted_data
-
-    if(verbose)
-      puts()
-      puts("-" * 80)
-      puts("Using pre-set data...")
-      puts("-" * 80)
-      puts("key: #{@key.unpack("H*")}")
-      puts("iv:  #{@iv.unpack("H*")}")
-      puts("enc: #{@data.unpack("H*")}")
-      puts("-" * 80)
-    end
-  end
-
-  def aes_192_from_data(data, key = nil, iv = nil)
-    @blocksize = 128 / 8
-    @key = key.nil? ? (1..24).map{rand(255).chr}.join : key
-    @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
-    @mode = "AES-192-CBC"
-    @data = Crypto.encrypt(data, @key, @iv, @mode)
-
-    if(verbose)
-      puts()
-      puts("-" * 80)
-      puts("Generated test data: #{data}")
-      puts("-" * 80)
-      puts("key: #{@key.unpack("H*")}")
-      puts("iv:  #{@iv.unpack("H*")}")
-      puts("enc: #{@data.unpack("H*")}")
-      puts("-" * 80)
-    end
-  end
-
-  def aes_256_from_data(data, key = nil, iv = nil)
-    @blocksize = 128 / 8
-    @key = key.nil? ? (1..32).map{rand(255).chr}.join : key
-    @iv  = iv.nil?  ? (1..16).map{rand(255).chr}.join : iv
-    @mode = "AES-256-CBC"
-    @data = Crypto.encrypt(data, @key, @iv, @mode)
-
-    if(verbose)
-      puts()
-      puts("-" * 80)
-      puts("Generated test data: #{data}")
-      puts("-" * 80)
-      puts("key: #{@key.unpack("H*")}")
-      puts("iv:  #{@iv.unpack("H*")}")
-      puts("enc: #{@data.unpack("H*")}")
+      puts("mode: #{mode}")
+      puts("key:  #{@key.unpack("H*")}")
+      puts("iv:   #{@iv.unpack("H*")}")
+      puts("enc:  #{@data.unpack("H*")}")
       puts("-" * 80)
     end
   end
 
   def attempt_decrypt(iv, block)
-      begin
-        if(@delay > 0)
-          sleep(@delay)
-        end
-        decrypted = Crypto.decrypt(block, @key, iv, @mode)
-        return true
-      rescue # TODO: Be more specific
-        return false
+    begin
+      if(@delay > 0)
+        sleep(@delay)
       end
+
+      c = OpenSSL::Cipher::Cipher.new(@mode)
+      c.decrypt
+      c.key = @key
+      c.iv = iv
+      c.update(block) + c.final
+
+      return true
+    rescue # TODO: Be more specific
+      return false
+    end
   end
 end
 
