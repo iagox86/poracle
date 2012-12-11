@@ -4,6 +4,22 @@ require 'LocalTestModule'
 require 'Pooracle'
 
 # Do a visible test for AES-256
+print("Testing DES visibly...")
+mod = LocalTestModule.new()
+mod.verbose = true
+mod.delay = 0.0001
+mod.des_from_data("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+p = Pooracle.new(mod)
+p.verbose = true
+result = p.decrypt
+if(result == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  puts("Passed!")
+else
+  puts("Failed!")
+  exit
+end
+
+# Do a visible test for AES-256
 print("Testing AES-256 visibly...")
 mod = LocalTestModule.new()
 mod.verbose = true

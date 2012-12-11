@@ -11,6 +11,25 @@ class LocalTestModule
     @delay   = 0
   end
 
+  def des_from_data(data, key = nil, iv = nil)
+    @blocksize = 64 / 8
+    @key = key.nil? ? (1..8).map{rand(255).chr}.join : key
+    @iv  = iv.nil?  ? (1..8).map{rand(255).chr}.join : iv
+    @mode = "DES-CBC"
+    @data = Crypto.encrypt(data, @key, @iv, @mode)
+
+    if(verbose)
+      puts()
+      puts("-" * 80)
+      puts("Generated test data: #{data}")
+      puts("-" * 80)
+      puts("key: #{@key.unpack("H*")}")
+      puts("iv:  #{@iv.unpack("H*")}")
+      puts("enc: #{@data.unpack("H*")}")
+      puts("-" * 80)
+    end
+  end
+
   def aes_128_from_data(data, key = nil, iv = nil)
     @blocksize = 128 / 8
     @key = key.nil? ? (1..16).map{rand(255).chr}.join : key
