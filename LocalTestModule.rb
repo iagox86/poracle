@@ -1,10 +1,10 @@
 require 'Crypto'
 
-class TestModule
+class LocalTestModule
   attr_reader :iv, :blocksize, :data
   attr_accessor :verbose, :delay
 
-  NAME = "TestModule(tm)"
+  NAME = "LocalTestModule(tm)"
 
   def initialize()
     @verbose = false
