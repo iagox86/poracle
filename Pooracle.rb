@@ -1,3 +1,28 @@
+##
+# Pooracle.rb
+# Created: December 8, 2012
+#
+# This class implements a simple Padding Oracle attack. It requires a 'module',
+# which implements a couple simple methods:
+#
+# NAME
+#  A constant representing the name of the module, used for output.
+#
+# blocksize()
+#  The blocksize of whatever cipher is being used, in bytes (eg, # 16 for AES,
+#  8 for DES, etc)
+#
+# iv()
+#  The initialization vector used for the encryption. If this isn't given, the
+#  first block can't be decrypted
+#
+# attempt_decrypt(iv, block)
+#  Attempt to decrypt the given data with the given IV and return whether or
+#  not there was a padding error. The IV doesn't have to be an actual IV, it
+#  just needs to be the last two blocks.
+#
+# See LocalTestModule.rb for an example of how this can be made.
+##
 class Pooracle
   attr_accessor :verbose
 
