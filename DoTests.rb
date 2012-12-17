@@ -49,11 +49,14 @@ end
     puts "Failed!"
   end
 end
+exit
 
 # Do a bunch of very short strings
-(0..256).to_a.each do |i|
-  data = (0..4).map{rand(255).to_i.chr}.join
-  p = Poracle.new(LocalTestModule.new(ciphers.shuffle[0], data, nil, nil, true), true)
+(0..512).to_a.each do |i|
+  data = (0..rand(8)).map{rand(255).to_i.chr}.join
+  cipher = ciphers.shuffle[0]
+  print("> #{cipher} with random short data... ")
+  p = Poracle.new(LocalTestModule.new(cipher, data, nil, nil))
   if(p.decrypt() == data)
     passes += 1
     puts "Passed!"
