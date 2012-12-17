@@ -9,7 +9,7 @@ require 'Poracle'
 # Perform local checks
 ciphers = OpenSSL::Cipher::ciphers.grep(/cbc/)
 ciphers = ["AES-128-CBC", "DES-CBC", "AES-256-CBC"] # TODO: Testing
-srand(123456)
+#srand(123456)
 
 passes = 0
 failures = 0
@@ -30,19 +30,40 @@ else
   exit
 end
 
-print("> Testing some data that causes backtracking in DES-CBC...")
-d = Poracle.new(LocalTestModule.new("DES-CBC", "5w4.x#bgIyW-8fYFZC6@_]@ZHx{", "\x8f\x8a\xab\x27\x22\xb6\x28\xbe\x26\x5c\x62\x04\x4a\xc5\x3a\x7b", "\x2d\x28\x9c\xc6\x82\xd1\x99\xdf\x17\x02\xe9\xbd\x3e\x02\x64\x92")).decrypt()
-if(d == "5w4.x#bgIyW-8fYFZC6@_]@ZHx{")
-  passes += 1
-  puts "Passed!"
-else
-  failures += 1
-  puts "Failed!"
-  puts "Expected: 5w4.x#bgIyW-8fYFZC6@_]@ZHx{"
-  puts "Received: #{d}"
-  exit
+# Test strings that require backtracking
+0.upto(24) do
+  print("> AES-128-CBC that requires backtracking...")
+
+  data_length = rand(15).to_i + 1
+  data = (1..data_length).map{rand(255).to_i.chr}.join
+  cipher = "AES-128-CBC"
+  #iv  = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x00"
+  iv  = (1..16).map{rand(255).to_i.chr}.join
+  iv[14] = ((16 - data_length) ^ 2).chr
+  p = Poracle.new(LocalTestModule.new(cipher, data, nil, iv))
+  if(p.decrypt() == data)
+    passes += 1
+    puts "Passed!"
+  else
+    failures += 1
+    puts "Failed!"
+  end
 end
 
+# Do a bunch of very short strings
+(0..256).to_a.each do |i|
+  data = (0..4).map{rand(255).to_i.chr}.join
+  p = Poracle.new(LocalTestModule.new(ciphers.shuffle[0], data, nil, nil, true), true)
+  if(p.decrypt() == data)
+    passes += 1
+    puts "Passed!"
+  else
+    failures += 1
+    puts "Failed!"
+  end
+end
+
+# Try the different ciphers
 ciphers.each do |cipher|
   (0..64).to_a.shuffle[0, 8].each do |i|
     print("> #{cipher} with random data (#{i} bytes)... ")

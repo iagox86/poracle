@@ -39,7 +39,7 @@ class LocalTestModule
     if(verbose)
       puts()
       puts("-" * 80)
-      puts("Generated test data: #{data}")
+      puts("Generated test data: #{data} (#{data.unpack("H*")})")
       puts("-" * 80)
       puts("mode: #{mode}")
       puts("key:  #{@key.unpack("H*")}")
@@ -59,7 +59,8 @@ class LocalTestModule
       c = OpenSSL::Cipher::Cipher.new(@mode)
       c.decrypt
       c.key = @key
-      c.update(data) + c.final
+      c.update(data)
+      c.final()
 
       return true
     rescue # TODO: Be more specific

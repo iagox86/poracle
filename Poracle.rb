@@ -53,9 +53,9 @@ class Poracle
     return c.unpack('C')[0]
   end
 
-  def initialize(mod)
+  def initialize(mod, verbose = false)
     @module = mod
-    @verbose = false
+    @verbose = verbose
     @guesses = 0
   end
 
@@ -99,6 +99,7 @@ class Poracle
       if(c)
         plaintext[character] = c
         character -= 1
+        #puts(plaintext)
       else
         character += 1
         puts("TODO: Backtrack")
@@ -160,7 +161,8 @@ class Poracle
     # Validate and remove the padding
     pad_bytes = result[result.length - 1].chr
     if(result[result.length - ord(pad_bytes), result.length - 1] != pad_bytes * ord(pad_bytes))
-      puts("Bad padding!")
+      puts("Bad padding:")
+      puts(Hex.get_str(result))
       return nil
     end
 
