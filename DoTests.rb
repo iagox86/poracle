@@ -14,23 +14,36 @@ srand(123456)
 passes = 0
 failures = 0
 guesses = 0
-ciphers.each do |cipher|
-  # Create the test module
-  print("> #{cipher} with known data... ")
-  d = Poracle.new(LocalTestModule.new(cipher, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt()
-  if(d == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    passes += 1
-    puts "Passed!"
-  else
-    failures += 1
-    puts "Failed!"
-    puts "Expected: ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    puts "Received: #{d}"
-    puts
-    puts "First test failed; bailing"
-    exit
-  end
 
+print("> AES-256-CBC with known data... ")
+d = Poracle.new(LocalTestModule.new("AES-256-CBC", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt()
+if(d == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  passes += 1
+  puts "Passed!"
+else
+  failures += 1
+  puts "Failed!"
+  puts "Expected: ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  puts "Received: #{d}"
+  puts
+  puts "First test failed; bailing"
+  exit
+end
+
+print("> Testing some data that causes backtracking in DES-CBC...")
+d = Poracle.new(LocalTestModule.new("DES-CBC", "5w4.x#bgIyW-8fYFZC6@_]@ZHx{", "\x8f\x8a\xab\x27\x22\xb6\x28\xbe\x26\x5c\x62\x04\x4a\xc5\x3a\x7b", "\x2d\x28\x9c\xc6\x82\xd1\x99\xdf\x17\x02\xe9\xbd\x3e\x02\x64\x92")).decrypt()
+if(d == "5w4.x#bgIyW-8fYFZC6@_]@ZHx{")
+  passes += 1
+  puts "Passed!"
+else
+  failures += 1
+  puts "Failed!"
+  puts "Expected: 5w4.x#bgIyW-8fYFZC6@_]@ZHx{"
+  puts "Received: #{d}"
+  exit
+end
+
+ciphers.each do |cipher|
   (0..64).to_a.shuffle[0, 8].each do |i|
     print("> #{cipher} with random data (#{i} bytes)... ")
 
