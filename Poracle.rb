@@ -85,7 +85,7 @@ class Poracle
   def do_block(block, previous)
     result = "?" * block.length
 
-    plaintext  = "\0" * @module.blocksize
+    plaintext  = "?" * @module.blocksize
 
     # Loop through the string from the end to the beginning
     character = block.length - 1
