@@ -17,12 +17,15 @@ guesses = 0
 ciphers.each do |cipher|
   # Create the test module
   print("> #{cipher} with known data... ")
-  if(Poracle.new(LocalTestModule.new(cipher, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt() == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  d = Poracle.new(LocalTestModule.new(cipher, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt()
+  if(d == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     passes += 1
     puts "Passed!"
   else
     failures += 1
     puts "Failed!"
+    puts "Expected: ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    puts "Received: #{d}"
   end
 
   (0..64).to_a.shuffle[0, 8].each do |i|

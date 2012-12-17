@@ -24,6 +24,10 @@
 # See LocalTestModule.rb and RemoteTestModule.rb for examples of how this can
 # be made.
 ##
+#
+
+require 'hex'
+
 class Poracle
   attr_accessor :verbose
   attr_reader :guesses
@@ -55,77 +59,54 @@ class Poracle
     @guesses = 0
   end
 
-  def do_block(num, block, previous, character = nil, blockprime = nil)
-    # Initialized the blockprime variable to all zeroes if it's not set.
-    # Interestingly, it doesn't actually matter how it's initialized, all
-    # that matters is the length
-    if(blockprime.nil?)
-      blockprime = "\0" * @module.blocksize
+  def find_character(character, block, previous, plaintext)
+    # First, generate a good C' (C prime) value, which is what we're going to
+    # set the previous block to. It's the plaintext we have so far, XORed with
+    # the expected padding, XORed with the previous block
+    blockprime = "\0" * @module.blocksize
+    (@module.blocksize - 1).step(character + 1, -1) do |i|
+      blockprime[i] = (ord(plaintext[i]) ^ (@module.blocksize - character) ^ ord(previous[i])).chr
     end
 
-    # Default to the last character if none was passed
-    if(character.nil?)
-      character = @module.blocksize - 1
-    end
-
-    # When character is below 0, we've arrived at the beginning of the string
-    if(character < 0)
-      return ''
-    end
-
-    # Try every value for the current character
-    0.upto(255) do |i|
-      # Update the current character of blockprime
+    # Try all possible characters
+    ord(blockprime[character]).upto(255) do |i|
       blockprime[character] = i.chr
 
-      # This line is the magic secret sauce. It attempts to decrypt the current
-      # block using blockprime as the IV. If this is successful, then it means
-      # that the padding is correct in the decrypted version
-      result = @module.attempt_decrypt(blockprime + block)
 
-      # Keep track of how many attempts we've made
+      result = @module.attempt_decrypt(blockprime + block)
       @guesses = @guesses + 1
 
       if(result)
-        # Save calculating this multiple times
-        expected_padding = @module.blocksize - character
+        return (ord(blockprime[character]) ^ (@module.blocksize - character) ^ ord(previous[character])).chr
+      end
+    end
+  end
 
-        # The current plaintext character is the xor of:
-        # 1. Our fake block's character (since it's XORed by that value in CBC)
-        # 2. The expected padding value, because that's what the oracle thought it was
-        # 3. The value of this character in the previous block, since that's
-        #    what it had been XORed with in the original encryption (I originally
-        #    screwed this one up!)
-        plaintext_char = ord(blockprime[character]) ^ expected_padding ^ ord(previous[character])
+  def do_block(block, previous)
+    result = "?" * block.length
 
-        # Update @output_state and print it (purely for output)
-        if(@verbose)
-          @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
-          puts(">> \"#{strclean(@output_state)}\"")
-        end
+    plaintext  = "\0" * @module.blocksize
 
-        # Create the blockprime that's going to be used for the next level.
-        # Basically, take the last 'n' characters of blockprime and set their
-        # padding to the next padding value. I'd like to find a better way to
-        # do this...
-        new_blockprime = blockprime.clone
-        (@module.blocksize - 1).step(character, -1) do |j|
-          new_blockprime[j] = (ord(new_blockprime[j]) ^ expected_padding ^ (expected_padding + 1)).chr
-        end
+    # Loop through the string from the end to the beginning
+    character = block.length - 1
+    while(character >= 0) do
+      # When character is below 0, we've arrived at the beginning of the string
+      if(character >= block.length)
+        raise("Could not decode!")
+      end
 
-        # Recursively do the next block. The reason for recursion is that it
-        # makes it easy to resume if it turns out we got unlucky and the second
-        # last character just happened to decrypt to \x02, meaning that setting
-        # the last character to \x02 will be valid padding even when we expect
-        # \x01
-        chr = do_block(num, block, previous, character - 1, new_blockprime)
-        if(!chr.nil?)
-          return plaintext_char.chr + chr
-        end
+      c = find_character(character, block, previous, plaintext)
+      if(c)
+        plaintext[character] = c
+        character -= 1
+      else
+        character += 1
+        puts("TODO: Backtrack")
+        exit
       end
     end
 
-    return nil
+    return plaintext
   end
 
   def decrypt
@@ -169,11 +150,11 @@ class Poracle
     # Decrypt all the blocks - from the last to the first (after the IV)
     result = ''
     (blocks.size - 1).step(1, -1) do |i|
-      new_result = do_block(i, blocks[i], blocks[i - 1])
+      new_result = do_block(blocks[i], blocks[i - 1])
       if(new_result.nil?)
         return nil
       end
-      result = new_result.reverse + result
+      result = new_result + result
     end
 
     # Validate and remove the padding
@@ -181,6 +162,7 @@ class Poracle
     if(result[result.length - ord(pad_bytes), result.length - 1] != pad_bytes * ord(pad_bytes))
       return nil
     end
+
     result = result[0, result.length - ord(pad_bytes)]
 
     return result
