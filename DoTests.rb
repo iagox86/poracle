@@ -85,11 +85,14 @@ end
 puts("Ciphers tested: #{ciphers.join(", ")}")
 puts("Tests passed: #{passes}")
 puts("Tests failed: #{failures}")
-puts("Total number of guesses: #{guesses} (should be 122895)")
 
 # Attempt a remote check
 puts("Starting remote test (this requires RemoteTestServer.rb to be running on localhost:20222)")
-p = Poracle.new(RemoteTestModule.new)
-p.verbose = true
-p.decrypt()
+begin
+  p = Poracle.new(RemoteTestModule.new)
+  p.verbose = true
+  p.decrypt()
+rescue Exception => e
+  puts("Couldn't connect to remote server: #{e}")
+end
 
