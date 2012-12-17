@@ -13,10 +13,10 @@ ciphers = ["AES-128-CBC", "DES-CBC", "AES-256-CBC"] # TODO: Testing
 
 passes = 0
 failures = 0
-guesses = 0
 
 print("> AES-256-CBC with known data... ")
-d = Poracle.new(LocalTestModule.new("AES-256-CBC", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt()
+mod = LocalTestModule.new("AES-256-CBC", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+d = Poracle.decrypt(mod, mod.ciphertext, mod.iv, true)
 if(d == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
   passes += 1
   puts "Passed!"
@@ -40,8 +40,9 @@ end
   #iv  = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x00"
   iv  = (1..16).map{rand(255).to_i.chr}.join
   iv[14] = ((16 - data_length) ^ 2).chr
-  p = Poracle.new(LocalTestModule.new(cipher, data, nil, iv))
-  if(p.decrypt() == data)
+  mod = LocalTestModule.new(cipher, data, nil, iv)
+  d = Poracle.decrypt(mod, mod.ciphertext, mod.iv)
+  if(d == data)
     passes += 1
     puts "Passed!"
   else
@@ -49,15 +50,15 @@ end
     puts "Failed!"
   end
 end
-exit
 
 # Do a bunch of very short strings
 (0..512).to_a.each do |i|
   data = (0..rand(8)).map{rand(255).to_i.chr}.join
   cipher = ciphers.shuffle[0]
   print("> #{cipher} with random short data... ")
-  p = Poracle.new(LocalTestModule.new(cipher, data, nil, nil))
-  if(p.decrypt() == data)
+  mod = LocalTestModule.new(cipher, data, nil, nil)
+  d = Poracle.decrypt(mod, mod.ciphertext, mod.iv)
+  if(d == data)
     passes += 1
     puts "Passed!"
   else
@@ -68,20 +69,19 @@ end
 
 # Try the different ciphers
 ciphers.each do |cipher|
-  (0..64).to_a.shuffle[0, 8].each do |i|
+  (0..128).to_a.shuffle[0, 8].each do |i|
     print("> #{cipher} with random data (#{i} bytes)... ")
 
     data = (0..i).map{(rand(0x7E - 0x20) + 0x20).chr}.join
-    p = Poracle.new(LocalTestModule.new(cipher, data))
-    if(p.decrypt() == data)
+    mod = LocalTestModule.new(cipher, data)
+    d = Poracle.decrypt(mod, mod.ciphertext, mod.iv)
+    if(d == data)
       passes += 1
       puts "Passed!"
     else
       failures += 1
       puts "Failed!"
     end
-
-    guesses += p.guesses
   end
 end
 

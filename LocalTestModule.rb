@@ -1,17 +1,16 @@
-##
-# LocaltestModule.rb
+## LocaltestModule.rb
 # Created: December 10, 2012
 # By: Ron Bowes
 #
-# A very simple application that's vulnerable to a padding oracle
-# attack. It's initialized with data and a mode, and the decrypt()
-# function will try to decrypt the given data with the given key.
+# A very simple application that's vulnerable to a padding oracle attack. It's
+# initialized with data and a mode, and the decrypt() function will try to
+# decrypt the given ciphertext with the given key.
 ##
 
 require 'openssl'
 
 class LocalTestModule
-  attr_reader :iv, :data, :blocksize
+  attr_reader :iv, :ciphertext, :blocksize
 
   NAME = "LocalTestModule(tm)"
 
@@ -34,7 +33,7 @@ class LocalTestModule
     c.key = @key
     c.iv  = @iv
 
-    @data = c.update(data) + c.final
+    @ciphertext = c.update(data) + c.final
 
     if(verbose)
       puts()
@@ -44,13 +43,13 @@ class LocalTestModule
       puts("mode: #{mode}")
       puts("key:  #{@key.unpack("H*")}")
       puts("iv:   #{@iv.unpack("H*")}")
-      puts("enc:  #{@data.unpack("H*")}")
+      puts("enc:  #{@ciphertext.unpack("H*")}")
       puts("-" * 80)
     end
   end
 
   # TODO: Make this a single argument
-  def attempt_decrypt(data)
+  def attempt_decrypt(ciphertext)
     begin
       if(@delay > 0)
         sleep(@delay)
@@ -59,7 +58,7 @@ class LocalTestModule
       c = OpenSSL::Cipher::Cipher.new(@mode)
       c.decrypt
       c.key = @key
-      c.update(data)
+      c.update(ciphertext)
       c.final()
 
       return true
