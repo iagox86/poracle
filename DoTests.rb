@@ -4,7 +4,7 @@ require 'openssl'
 
 require 'LocalTestModule'
 require 'RemoteTestModule'
-require 'Pooracle'
+require 'Poracle'
 
 # Perform local checks
 ciphers = OpenSSL::Cipher::ciphers.grep(/cbc/)
@@ -13,7 +13,7 @@ failures = 0
 ciphers.each do |cipher|
   # Create the test module
   print("> #{cipher} with known data... ")
-  if(Pooracle.new(LocalTestModule.new(cipher, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt() == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  if(Poracle.new(LocalTestModule.new(cipher, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")).decrypt() == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     passes += 1
     puts "Passed!"
   else
@@ -25,7 +25,7 @@ ciphers.each do |cipher|
     print("> #{cipher} with random data (#{i} bytes)... ")
 
     data = (0..i).map{(rand(0x7E - 0x20) + 0x20).chr}.join
-    if(Pooracle.new(LocalTestModule.new(cipher, data)).decrypt() == data)
+    if(Poracle.new(LocalTestModule.new(cipher, data)).decrypt() == data)
       passes += 1
       puts "Passed!"
     else
@@ -41,7 +41,7 @@ puts("Tests failed: #{failures}")
 
 # Attempt a remote check
 puts("Starting remote test (this requires RemoteTestServer.rb to be running on localhost:20222)")
-p = Pooracle.new(RemoteTestModule.new)
+p = Poracle.new(RemoteTestModule.new)
 p.verbose = true
 p.decrypt()
 
