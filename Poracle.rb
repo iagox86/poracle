@@ -99,8 +99,8 @@ class Poracle
         plaintext_char = ord(blockprime[character]) ^ expected_padding ^ ord(previous[character])
 
         # Update @output_state and print it (purely for output)
-        @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
         if(@verbose)
+          @output_state[((num - 1) * @module.blocksize) + character] = plaintext_char.chr
           puts(">> \"#{strclean(@output_state)}\"")
         end
 
@@ -135,8 +135,10 @@ class Poracle
       iv = "\x00" * @module.blocksize
     end
 
-    # Create the @output_state variable, which will be purely for output
-    @output_state = '?' * @module.data.length
+    if(@verbose)
+      # Create the @output_state variable, which will be purely for output
+      @output_state = '?' * @module.data.length
+    end
 
     # Add the IV to the start of the encrypted string (for simplicity)
     data  = iv + @module.data
