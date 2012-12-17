@@ -1,0 +1,2 @@
+- Print the number of requests / amount of time
+- Speed up the process by initializing the last byte of P' to a logical value
