@@ -158,8 +158,9 @@ class Poracle
     end
 
     # Validate and remove the padding
-    pad_bytes = result[result.length - 1]
+    pad_bytes = result[result.length - 1].chr
     if(result[result.length - ord(pad_bytes), result.length - 1] != pad_bytes * ord(pad_bytes))
+      puts("Bad padding!")
       return nil
     end
 

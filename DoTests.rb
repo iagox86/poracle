@@ -26,6 +26,9 @@ ciphers.each do |cipher|
     puts "Failed!"
     puts "Expected: ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     puts "Received: #{d}"
+    puts
+    puts "First test failed; bailing"
+    exit
   end
 
   (0..64).to_a.shuffle[0, 8].each do |i|
