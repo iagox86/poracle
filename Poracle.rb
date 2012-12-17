@@ -69,22 +69,35 @@ class Poracle
     end
 
     # Try all possible characters
-    ord(blockprime[character]).upto(255) do |i|
+    0.upto(255) do |i|
       blockprime[character] = i.chr
-
 
       result = @module.attempt_decrypt(blockprime + block)
       @guesses = @guesses + 1
 
       if(result)
-        return (ord(blockprime[character]) ^ (@module.blocksize - character) ^ ord(previous[character])).chr
+        # Validate the result if we're working on the last character
+        false_positive = false
+        if(character == @module.blocksize - 1)
+          blockprime_test = blockprime.clone
+          blockprime_test[character - 1] = (ord(blockprime_test[character - 1]) ^ 1).chr
+          if(!@module.attempt_decrypt(blockprime_test + block))
+            puts("Hit a false positive!")
+            false_positive = true
+          end
+        end
+
+        if(!false_positive)
+          return (ord(blockprime[character]) ^ (@module.blocksize - character) ^ ord(previous[character])).chr
+        end
       end
     end
+
+    raise("Couldn't find a valid encoding!")
   end
 
   def do_block(block, previous)
     result = "?" * block.length
-
     plaintext  = "?" * @module.blocksize
 
     # Loop through the string from the end to the beginning
@@ -96,15 +109,8 @@ class Poracle
       end
 
       c = find_character(character, block, previous, plaintext)
-      if(c)
-        plaintext[character] = c
-        character -= 1
-        #puts(plaintext)
-      else
-        character += 1
-        puts("TODO: Backtrack")
-        exit
-      end
+      plaintext[character] = c
+      character -= 1
     end
 
     return plaintext
