@@ -48,7 +48,6 @@ class LocalTestModule
     end
   end
 
-  # TODO: Make this a single argument
   def attempt_decrypt(ciphertext)
     begin
       if(@delay > 0)

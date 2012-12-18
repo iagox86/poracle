@@ -26,7 +26,12 @@ require 'hex'
 
 module Poracle
   attr_accessor :verbose
-  attr_reader :guesses
+
+  @@guesses = 0
+
+  def Poracle.guesses
+    return @@guesses
+  end
 
   def Poracle.ord(c)
     if(c.is_a?(Fixnum))
@@ -35,7 +40,7 @@ module Poracle
     return c.unpack('C')[0]
   end
 
-  def Poracle.find_character(mod, character, block, previous, plaintext, verbose = false)
+  def Poracle.find_character(mod, character, block, previous, plaintext, starting_character = 0, verbose = false)
     # First, generate a good C' (C prime) value, which is what we're going to
     # set the previous block to. It's the plaintext we have so far, XORed with
     # the expected padding, XORed with the previous block
@@ -46,9 +51,14 @@ module Poracle
 
     # Try all possible characters
     0.upto(255) do |i|
-      blockprime[character] = i.chr
+      # Decide what our current guess will be. This is an optimization that
+      # lets us search through the more likely character space first
+      current_guess = (starting_character + i) % 256
+
+      blockprime[character] = ((mod.blocksize - character) ^ ord(previous[character]) ^ current_guess).chr
 
       result = mod.attempt_decrypt(blockprime + block)
+      @@guesses += 1
 
       if(result)
         # Validate the result if we're working on the last character
@@ -63,7 +73,7 @@ module Poracle
         end
 
         if(!false_positive)
-          return (ord(blockprime[character]) ^ (mod.blocksize - character) ^ ord(previous[character])).chr
+          return current_guess.chr
         end
       end
     end
@@ -71,7 +81,7 @@ module Poracle
     raise("Couldn't find a valid encoding!")
   end
 
-  def Poracle.do_block(mod, block, previous, verbose = false)
+  def Poracle.do_block(mod, block, previous, is_mostly_ascii = false, has_padding = false, verbose = false)
     result = "?" * block.length
     plaintext  = "?" * mod.blocksize
 
@@ -83,7 +93,20 @@ module Poracle
         raise("Could not decode!")
       end
 
-      c = find_character(mod, character, block, previous, plaintext, verbose)
+      # Try to be intelligent about which character we guess first, to save
+      # requests
+      starting_character = 0
+      if(character == block.length - 1 && has_padding)
+        starting_character = 1
+      elsif(has_padding && character >= block.length - plaintext[block.length - 1].ord)
+        starting_character = plaintext[block.length - 1].ord
+      elsif(is_mostly_ascii)
+        starting_character = 0x20
+      else
+        starting_character = 0
+      end
+
+      c = find_character(mod, character, block, previous, plaintext, starting_character, verbose)
       plaintext[character] = c
       if(verbose)
         puts(plaintext)
@@ -94,7 +117,7 @@ module Poracle
     return plaintext
   end
 
-  def Poracle.decrypt(mod, data, iv = nil, verbose = false)
+  def Poracle.decrypt(mod, data, iv = nil, verbose = false, is_mostly_ascii = false)
     # Default to a nil IV
     if(iv.nil?)
       iv = "\x00" * mod.blocksize
@@ -129,11 +152,13 @@ module Poracle
 
     # Decrypt all the blocks - from the last to the first (after the IV)
     result = ''
+    is_last_block = true
     (blocks.size - 1).step(1, -1) do |i|
-      new_result = do_block(mod, blocks[i], blocks[i - 1], verbose)
+      new_result = do_block(mod, blocks[i], blocks[i - 1], is_mostly_ascii, is_last_block, verbose)
       if(new_result.nil?)
         return nil
       end
+      is_last_block = false
       result = new_result + result
       if(verbose)
         puts(" --> #{result}")
