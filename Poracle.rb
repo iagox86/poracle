@@ -29,8 +29,6 @@
 ##
 #
 
-require 'hex'
-
 module Poracle
   attr_accessor :verbose
 
@@ -192,7 +190,7 @@ module Poracle
     pad_bytes = result[result.length - 1].chr
     if(result[result.length - ord(pad_bytes), result.length - 1] != pad_bytes * ord(pad_bytes))
       puts("Bad padding:")
-      puts(Hex.get_str(result))
+      puts(result.unpack("H*"))
       return nil
     end
 
