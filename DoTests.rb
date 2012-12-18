@@ -1,5 +1,6 @@
 $LOAD_PATH << File.dirname(__FILE__) # A hack to make this work on 1.8/1.9
 
+require 'benchmark'
 require 'openssl'
 
 require 'LocalTestModule'
@@ -11,7 +12,14 @@ if(ARGV[0] == 'remote')
   puts("Starting remote test (this requires RemoteTestServer.rb to be running on localhost:20222)")
   begin
     mod = RemoteTestModule.new
-    puts Poracle.decrypt(mod, mod.data, mod.iv, true, true)
+
+    time = Benchmark.measure do
+      puts Poracle.decrypt(mod, mod.data, mod.iv, true, true)
+    end
+
+    puts("Guesses: #{Poracle.guesses}")
+    puts("Time: #{time}")
+
   rescue Exception => e
     puts("Couldn't connect to remote server: #{e}")
   end

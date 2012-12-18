@@ -40,7 +40,22 @@ module Poracle
     return c.unpack('C')[0]
   end
 
-  def Poracle.find_character(mod, character, block, previous, plaintext, starting_character = 0, verbose = false)
+  def Poracle.generate_set(base_list)
+    mapping = []
+    base_list.each do |i|
+      mapping[ord(i)] = true
+    end
+
+    0.upto(255) do |i|
+      if(!mapping[i])
+        base_list << i.chr
+      end
+    end
+
+    return base_list
+  end
+
+  def Poracle.find_character(mod, character, block, previous, plaintext, character_set, verbose = false)
     # First, generate a good C' (C prime) value, which is what we're going to
     # set the previous block to. It's the plaintext we have so far, XORed with
     # the expected padding, XORed with the previous block
@@ -50,12 +65,8 @@ module Poracle
     end
 
     # Try all possible characters
-    0.upto(255) do |i|
-      # Decide what our current guess will be. This is an optimization that
-      # lets us search through the more likely character space first
-      current_guess = (starting_character + i) % 256
-
-      blockprime[character] = ((mod.blocksize - character) ^ ord(previous[character]) ^ current_guess).chr
+    character_set.each do |current_guess|
+      blockprime[character] = ((mod.blocksize - character) ^ ord(previous[character]) ^ ord(current_guess)).chr
 
       result = mod.attempt_decrypt(blockprime + block)
       @@guesses += 1
@@ -73,7 +84,7 @@ module Poracle
         end
 
         if(!false_positive)
-          return current_guess.chr
+          return current_guess
         end
       end
     end
@@ -101,12 +112,26 @@ module Poracle
       elsif(has_padding && character >= block.length - plaintext[block.length - 1].ord)
         starting_character = plaintext[block.length - 1].ord
       elsif(is_mostly_ascii)
-        starting_character = 0x20
+        starting_character = 0x60
       else
         starting_character = 0
       end
 
-      c = find_character(mod, character, block, previous, plaintext, starting_character, verbose)
+      set = nil
+      if(character == block.length - 1 && has_padding)
+        set = generate_set([1.chr])
+      elsif(has_padding && character >= block.length - plaintext[block.length - 1].ord)
+        set = generate_set([plaintext[block.length - 1]])
+      elsif(is_mostly_ascii)
+        #set = generate_set(('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + ' .,-!@#$%^&*()_+={[}]|\:;"\'<>?/]'.chars.to_a)
+        # Generated based on the Battlestar Galactica wikia page (yes, I'm serious :) )
+        set = generate_set(' eationsrlhdcumpfgybw.k:v-/,CT0SA;B#G2xI1PFWE)3(*M\'!LRDHN_"9UO54Vj87q$K6zJY%?Z+=@QX&|[]<>^{}'.chars.to_a)
+      else
+        set = generate_set([])
+      end
+
+
+      c = find_character(mod, character, block, previous, plaintext, set, verbose)
       plaintext[character] = c
       if(verbose)
         puts(plaintext)
