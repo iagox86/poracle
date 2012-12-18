@@ -20,7 +20,8 @@ if(ARGV[0] == 'remote')
     puts("Guesses: #{Poracle.guesses}")
     puts("Time: #{time}")
 
-  rescue Exception => e
+  rescue Errno::ECONNREFUSED => e
+    puts(e.class)
     puts("Couldn't connect to remote server: #{e}")
   end
 end

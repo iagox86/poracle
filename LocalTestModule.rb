@@ -61,7 +61,7 @@ class LocalTestModule
       c.final()
 
       return true
-    rescue # TODO: Be more specific
+    rescue OpenSSL::Cipher::CipherError
       return false
     end
   end
