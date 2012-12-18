@@ -27,5 +27,10 @@ class RemoteTestModule
 
     return result.parsed_response !~ /Fail/
   end
+
+  def character_set()
+    # Return the perfectly optimal string, as a demonstration
+    return ' earnisoctldpukhmf,gSywb0.vWD21'.chars.to_a
+  end
 end
 

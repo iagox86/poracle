@@ -17,6 +17,13 @@
 #  Attempt to decrypt the given data, and return true if there was no
 #  padding error and false if a padding error occured.
 #
+# character_set() [optional]
+#  If character_set() is defined, it is expected to return an array of
+#  characters in the order that they're likely to occur in the string. This
+#  allows modules to optimize themselves for, for example, filenames. The list
+#  doesn't need to be exhaustive; all other possible values are appended from
+#  0 to 255.
+#
 # See LocalTestModule.rb and RemoteTestModule.rb for examples of how this can
 # be made.
 ##
@@ -111,6 +118,8 @@ module Poracle
         set = generate_set([1.chr])
       elsif(has_padding && character >= block.length - plaintext[block.length - 1].ord)
         set = generate_set([plaintext[block.length - 1]])
+      elsif(mod.respond_to?(:character_set))
+        set = generate_set(mod.character_set)
       elsif(is_mostly_ascii)
         #set = generate_set(('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + ' .,-!@#$%^&*()_+={[}]|\:;"\'<>?/]'.chars.to_a)
         # Generated based on the Battlestar Galactica wikia page (yes, I'm serious :) )
