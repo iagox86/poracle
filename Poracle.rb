@@ -106,17 +106,6 @@ module Poracle
 
       # Try to be intelligent about which character we guess first, to save
       # requests
-      starting_character = 0
-      if(character == block.length - 1 && has_padding)
-        starting_character = 1
-      elsif(has_padding && character >= block.length - plaintext[block.length - 1].ord)
-        starting_character = plaintext[block.length - 1].ord
-      elsif(is_mostly_ascii)
-        starting_character = 0x60
-      else
-        starting_character = 0
-      end
-
       set = nil
       if(character == block.length - 1 && has_padding)
         set = generate_set([1.chr])
