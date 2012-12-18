@@ -85,6 +85,9 @@ module Poracle
 
       c = find_character(mod, character, block, previous, plaintext, verbose)
       plaintext[character] = c
+      if(verbose)
+        puts(plaintext)
+      end
       character -= 1
     end
 
@@ -132,6 +135,9 @@ module Poracle
         return nil
       end
       result = new_result + result
+      if(verbose)
+        puts(" --> #{result}")
+      end
     end
 
     # Validate and remove the padding

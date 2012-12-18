@@ -6,9 +6,19 @@ require 'LocalTestModule'
 require 'RemoteTestModule'
 require 'Poracle'
 
+if(ARGV[0] == 'remote')
+  # Attempt a remote check
+  puts("Starting remote test (this requires RemoteTestServer.rb to be running on localhost:20222)")
+  begin
+    mod = RemoteTestModule.new
+    puts Poracle.decrypt(mod, mod.data, mod.iv, true)
+  rescue Exception => e
+    puts("Couldn't connect to remote server: #{e}")
+  end
+end
+
 # Perform local checks
 ciphers = OpenSSL::Cipher::ciphers.grep(/cbc/)
-ciphers = ["AES-128-CBC", "DES-CBC", "AES-256-CBC"] # TODO: Testing
 #srand(123456)
 
 passes = 0
@@ -89,13 +99,4 @@ puts("Ciphers tested: #{ciphers.join(", ")}")
 puts("Tests passed: #{passes}")
 puts("Tests failed: #{failures}")
 
-# Attempt a remote check
-puts("Starting remote test (this requires RemoteTestServer.rb to be running on localhost:20222)")
-begin
-  p = Poracle.new(RemoteTestModule.new)
-  p.verbose = true
-  p.decrypt()
-rescue Exception => e
-  puts("Couldn't connect to remote server: #{e}")
-end
 

@@ -1,4 +1,2 @@
 - Print the number of requests / amount of time
 - Speed up the process by initializing the last byte of P' to a logical value
-- Make the algorithm iterative rather than recursive to save my sanity
-- Remove the @output_state variable, since it's <s>retarded</s>unwise
