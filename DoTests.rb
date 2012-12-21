@@ -50,7 +50,7 @@ else
 end
 
 # Test strings that require backtracking
-0.upto(72) do
+0.upto(512) do
   print("> AES-128-CBC that requires backtracking...")
 
   data_length = rand(15).to_i + 1

