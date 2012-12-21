@@ -97,7 +97,7 @@ module Poracle
     raise("Couldn't find a valid encoding!")
   end
 
-  def Poracle.do_block(mod, block, previous, is_mostly_ascii = false, has_padding = false, verbose = false)
+  def Poracle.do_block(mod, block, previous, has_padding = false, verbose = false)
     result = "?" * block.length
     plaintext  = "?" * mod.blocksize
 
@@ -118,12 +118,9 @@ module Poracle
         set = generate_set([plaintext[block.length - 1]])
       elsif(mod.respond_to?(:character_set))
         set = generate_set(mod.character_set)
-      elsif(is_mostly_ascii)
-        #set = generate_set(('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + ' .,-!@#$%^&*()_+={[}]|\:;"\'<>?/]'.chars.to_a)
+      else
         # Generated based on the Battlestar Galactica wikia page (yes, I'm serious :) )
         set = generate_set(' eationsrlhdcumpfgybw.k:v-/,CT0SA;B#G2xI1PFWE)3(*M\'!LRDHN_"9UO54Vj87q$K6zJY%?Z+=@QX&|[]<>^{}'.chars.to_a)
-      else
-        set = generate_set([])
       end
 
 
@@ -138,7 +135,7 @@ module Poracle
     return plaintext
   end
 
-  def Poracle.decrypt(mod, data, iv = nil, verbose = false, is_mostly_ascii = false)
+  def Poracle.decrypt(mod, data, iv = nil, verbose = false)
     # Default to a nil IV
     if(iv.nil?)
       iv = "\x00" * mod.blocksize
@@ -175,7 +172,7 @@ module Poracle
     result = ''
     is_last_block = true
     (blocks.size - 1).step(1, -1) do |i|
-      new_result = do_block(mod, blocks[i], blocks[i - 1], is_mostly_ascii, is_last_block, verbose)
+      new_result = do_block(mod, blocks[i], blocks[i - 1], is_last_block, verbose)
       if(new_result.nil?)
         return nil
       end

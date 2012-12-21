@@ -14,7 +14,7 @@ if(ARGV[0] == 'remote')
     mod = RemoteTestModule.new
 
     time = Benchmark.measure do
-      puts Poracle.decrypt(mod, mod.data, mod.iv, true, true)
+      puts Poracle.decrypt(mod, mod.data, mod.iv, true)
     end
 
     puts("Guesses: #{Poracle.guesses}")
@@ -35,7 +35,7 @@ failures = 0
 
 print("> AES-256-CBC with known data... ")
 mod = LocalTestModule.new("AES-256-CBC", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-d = Poracle.decrypt(mod, mod.ciphertext, mod.iv, true, true)
+d = Poracle.decrypt(mod, mod.ciphertext, mod.iv, true)
 if(d == "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
   passes += 1
   puts "Passed!"
@@ -60,7 +60,7 @@ end
   iv  = (1..16).map{rand(255).to_i.chr}.join
   iv[14] = ((16 - data_length) ^ 2).chr
   mod = LocalTestModule.new(cipher, data, nil, iv)
-  d = Poracle.decrypt(mod, mod.ciphertext, mod.iv, false, true)
+  d = Poracle.decrypt(mod, mod.ciphertext, mod.iv, false)
   if(d == data)
     passes += 1
     puts "Passed!"
@@ -93,7 +93,7 @@ ciphers.each do |cipher|
 
     data = (0..i).map{(rand(0x7E - 0x20) + 0x20).chr}.join
     mod = LocalTestModule.new(cipher, data)
-    d = Poracle.decrypt(mod, mod.ciphertext, mod.iv, false, true)
+    d = Poracle.decrypt(mod, mod.ciphertext, mod.iv, false)
     if(d == data)
       passes += 1
       puts "Passed!"
