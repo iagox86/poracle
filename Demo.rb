@@ -1,3 +1,5 @@
+# encoding: ASCII-8BIT
+
 ##
 # Demo.rb
 # Created: February 10, 2013
@@ -7,36 +9,36 @@
 ##
 #
 require 'httparty'
-require './poracle'
+require './Poracle'
 
-class DemoModule
-  attr_reader :iv, :data, :blocksize
+BLOCKSIZE = 16
 
-  NAME = "DemoModule(tm)"
+poracle = Poracle.new(BLOCKSIZE, true) do |data|
+  url = "http://localhost:20222/decrypt/#{data.unpack('H*').pop()}"
+  result = HTTParty.get(url)
 
-  # This function should load @data, @iv, and @blocksize appropriately
-  def initialize()
-    @data = HTTParty.get("http://localhost:20222/encrypt").parsed_response
-    # Parse 'data' here
-    @data = [@data].pack("H*")
-    @iv = nil
-    @blocksize = 16
-  end
-
-  # This should make a decryption attempt and return true/false
-  def attempt_decrypt(data)
-    result = HTTParty.get("http://localhost:20222/decrypt/#{data.unpack("H*").pop}").parsed_response
-
-    # Match 'result' appropriately
-    return result !~ /Fail/
-  end
-
-  # Optionally define a character set, with the most common characters first
-  def character_set()
-    return ' eationsrlhdcumpfgybw.k:v-/,CT0SA;B#G2xI1PFWE)3(*M\'!LRDHN_"9UO54Vj87q$K6zJY%?Z+=@QX&|[]<>^{}'.chars.to_a
-  end
+  # Return
+  result.parsed_response !~ /Fail/
 end
 
-mod = DemoModule.new
-puts "DECRYPTED: #{Poracle.decrypt(mod, mod.data, mod.iv, true)}"
+data = HTTParty.get("http://localhost:20222/encrypt").parsed_response
+print "Trying to decrypt: %s" % data
 
+result = poracle.decrypt([data].pack('H*'))
+puts("-----------------------------")
+puts("Decryption result")
+puts("-----------------------------")
+puts result
+puts("-----------------------------")
+puts()
+
+data = "The most merciful thing in the world, I think, is the inability of the human mind to correlate all its contents."
+print "Trying to encrypt: %s" % data
+result = poracle.encrypt(data)
+
+puts("-----------------------------")
+puts("Encrypted string")
+puts("-----------------------------")
+puts result.unpack('H*')
+puts("-----------------------------")
+puts()

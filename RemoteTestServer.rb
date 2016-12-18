@@ -1,3 +1,5 @@
+# encoding: ASCII-8BIT
+
 ##
 # RemoteTestServer
 # Created: December 10, 2012
@@ -16,29 +18,33 @@ require 'sinatra'
 set :port, 20222
 
 # Note: Don't actually generate keys like this!
-@@key = (1..32).map{rand(255).chr}.join
+KEY = (1..32).map{rand(255).chr}.join
 
 get '/encrypt' do
   text = "SkullSpace is a hackerspace in Winnipeg, founded December 2010. SkullSpace is a place for hackers, builders, programmers, artists, and anybody interested in how stuff works to gather in a common place and help focus their knowledge and creativity."
   c = OpenSSL::Cipher::Cipher.new("AES-256-CBC")
   c.encrypt
-  c.key = @@key
+  c.key = KEY
 
   return (c.update(text) + c.final).unpack("H*")
 end
 
-get /\/decrypt\/([a-fA-F0-9]+)$/ do |data|
+get(/\/decrypt\/([a-fA-F0-9]+)$/) do |data|
   begin
     data = [data].pack("H*")
     c = OpenSSL::Cipher::Cipher.new("AES-256-CBC")
     c.decrypt
-    c.key = @@key
-    c.update(data)
-    c.final
+    c.key = KEY
+    result = c.update(data)
+    result += c.final
 
-    return "Success"
+    puts("Result: \"%s\"" % result.unpack('H*'))
+
+    puts('SUCCESS')
+    return "Success!"
   rescue
-    return "Fail"
+    puts('FAIL')
+    return "Fail!"
   end
 end
 
