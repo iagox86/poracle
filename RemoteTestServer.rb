@@ -29,7 +29,7 @@ get '/encrypt' do
   return (c.update(text) + c.final).unpack("H*")
 end
 
-get(/\/decrypt\/([a-fA-F0-9]+)$/) do |data|
+get(/\/decrypt\/([a-fA-F0-9]+)/) do |data|
   begin
     data = [data].pack("H*")
     c = OpenSSL::Cipher::Cipher.new("AES-256-CBC")
@@ -47,5 +47,3 @@ get(/\/decrypt\/([a-fA-F0-9]+)$/) do |data|
     return "Fail!"
   end
 end
-
-
