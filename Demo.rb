@@ -15,7 +15,7 @@ require 'singlogger'
 require 'uri'
 
 # Note: set this to DEBUG to get full full output
-SingLogger.set_level_from_string(level: "DEBUG")
+SingLogger.set_level_from_string(level: "INFO")
 L = SingLogger.instance()
 
 # 16 is good for AES and 8 for DES
@@ -75,6 +75,7 @@ result = poracle.decrypt(data, iv=nil)
 # prepended to the data (which is common)
 #result = poracle.decrypt_with_embedded_iv(data)
 
+# Print the decryption result
 puts("-----------------------------")
 puts("Decryption result")
 puts("-----------------------------")
@@ -90,9 +91,11 @@ if(data.nil?)
   data = "The most merciful thing in the world, I think, is the inability of the human mind to correlate all its contents."
 end
 
+# Do the encryption
 puts "Trying to encrypt: %s" % data
 result = poracle.encrypt(data)
 
+# Print the encryption result
 puts("-----------------------------")
 puts("Encrypted string")
 puts("-----------------------------")
